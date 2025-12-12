@@ -19,7 +19,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
         ORDER BY
           CASE p.estado
             WHEN 'Listo' THEN 1
-            WHEN 'En preparación' THEN 2
+            WHEN 'En preparacion' THEN 2
             WHEN 'Pendiente' THEN 3
             ELSE 4
           END,
