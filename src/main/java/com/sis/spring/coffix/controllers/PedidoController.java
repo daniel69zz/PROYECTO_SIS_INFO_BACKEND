@@ -30,7 +30,7 @@ public class PedidoController {
     }
 
     // GET /api/pedidos  -> todos
-    // GET /api/pedidos?estado=Listo  -> solo los de ese estado
+    // GET /api/pedidos?estado=Listo  
     @GetMapping
     public List<Pedido> listarPedidos(@RequestParam(required = false) String estado) {
         if (estado != null && !estado.isBlank()) {

@@ -2,6 +2,7 @@ package com.sis.spring.coffix.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +38,18 @@ public class PedidoService {
     }
 
     public List<Pedido> obtenerTodos() {
+        if (esHoraPico()) {
+            return pedidoRepository.findAllWithDetallesOrdenHoraPico();
+        }
         return pedidoRepository.findAllWithDetalles();
+    }
+
+    private boolean esHoraPico() {
+        LocalTime ahora = LocalTime.now();
+        LocalTime inicio = LocalTime.of(12, 0);
+        LocalTime fin = LocalTime.of(14, 0);
+
+        return !ahora.isBefore(inicio) && ahora.isBefore(fin);
     }
 
     public List<Pedido> obtenerPorEstado(String estado) {
@@ -53,7 +65,6 @@ public class PedidoService {
         return pedidoRepository.save(pedido);
     }
 
-     // ==================== CREAR PEDIDO ====================
     @Transactional
     public Pedido crearPedido(PedidoCrearDTO request) {
 
@@ -79,7 +90,8 @@ public class PedidoService {
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Producto no encontrado: " + item.getIdProducto()
                     ));
-
+                    
+            // VERIFICAR STOCK PRODUCTO PARA REGISTRAR PEDIDO        
             Integer stockActual = productoRepository.stockProducto(prod.getId_producto());
             if (stockActual == null || stockActual < item.getCantidad()) {
                 throw new IllegalArgumentException(
@@ -118,12 +130,13 @@ public class PedidoService {
 
         pago.setMonto_pagado(montoPagado);
 
-        if (montoPagado.compareTo(total) >= 0) {
-            pago.setEstado("PAGADO");
-        } else {
-            pago.setEstado("PENDIENTE");
+        if (montoPagado.compareTo(total) <= 0) {
+            throw new IllegalArgumentException(
+                    "Monto pagado insuficiente. Debe ser mayor al total. Total: " + total + ", Pagado: " + montoPagado
+            );
         }
 
+        pago.setEstado("PAGADO");
         pedidoPagoRepository.save(pago);
 
         return pedidoRepository.save(guardado);
@@ -131,16 +144,16 @@ public class PedidoService {
 
 
     private String generarCodigoBase() {
-        // EJEMPLO: antes tenías algo como:
-        // return "PED-" + System.currentTimeMillis();
-        // OJO: aquí pega tu lógica real
         return "PED-" + System.currentTimeMillis();
     }
 
-    // Nuevo: usa el nombre del cliente para crear el código completo
     private String generarCodigoPedido(String nombreCliente) {
         String base = generarCodigoBase();
 
-        return base + "-" + nombreCliente;
+        if (nombreCliente == null || nombreCliente.isBlank()) {
+            return base;
+        }
+
+        return base + "-" + nombreCliente.trim();
     }
 }

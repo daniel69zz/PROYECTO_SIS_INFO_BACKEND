@@ -2,7 +2,12 @@ package com.sis.spring.coffix.model;
 
 import org.hibernate.annotations.Formula;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 
 @Entity
@@ -62,7 +67,4 @@ public class Usuario {
     public void setRol(String rol) {
         this.rol = rol;
     }
-
-    
-    
 }

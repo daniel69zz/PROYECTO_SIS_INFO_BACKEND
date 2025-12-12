@@ -1,16 +1,31 @@
 package com.sis.spring.coffix.repository;
 
-import com.sis.spring.coffix.model.Pedido;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.sis.spring.coffix.model.Pedido;
 
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
+    @Query("""
+        SELECT DISTINCT p
+        FROM Pedido p
+        LEFT JOIN FETCH p.detalles d
+        ORDER BY
+          CASE p.estado
+            WHEN 'Listo' THEN 1
+            WHEN 'En preparación' THEN 2
+            WHEN 'Pendiente' THEN 3
+            ELSE 4
+          END,
+          p.fc_hora ASC
+    """)
+    List<Pedido> findAllWithDetallesOrdenHoraPico();
 
     @Query("""
            SELECT DISTINCT p
@@ -38,10 +53,8 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
            """)
     List<Pedido> findByEstadoWithDetalles(@Param("estado") String estado);
 
-    // este lo puedes dejar para otros usos donde NO necesites detalles/producto
     List<Pedido> findByEstado(String estado);
 
-    // NUEVO: obtener varios pedidos (con detalles + productos) por lista de IDs
     @Query("""
            SELECT DISTINCT p
            FROM Pedido p

@@ -82,7 +82,6 @@ public class Producto {
         this.id_tipo_prod = id_tipo_prod;
     }
 
-    // 👇 nuevo getter/setter para el nombre del tipo
     public String getNombre_tipo() {
         return nombre_tipo;
     }

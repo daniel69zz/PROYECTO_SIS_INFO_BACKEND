@@ -5,8 +5,8 @@ import java.util.List;
 
 public class ReporteVentasDTO {
 
-    private BigDecimal totalIngresos;        // suma de todos los días
-    private List<VentaDiaDTO> ventasPorDia;  // lista de días
+    private BigDecimal totalIngresos;        
+    private List<VentaDiaDTO> ventasPorDia;  
 
     public ReporteVentasDTO() {
     }

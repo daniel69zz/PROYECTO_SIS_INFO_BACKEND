@@ -1,10 +1,17 @@
 package com.sis.spring.coffix.model;
 
-import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "pedidos")
@@ -26,7 +33,7 @@ public class Pedido {
     private Integer id_usuario;
 
     @OneToMany(
-        mappedBy = "pedido",            // 👈 enlaza con el campo "pedido" de Detalle_Pedido
+        mappedBy = "pedido",          
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
@@ -91,15 +98,8 @@ public class Pedido {
         this.detalles = detalles;
     }
 
-    // Métodos de conveniencia
     public void addDetalle(Detalle_Pedido detalle) {
         detalles.add(detalle);
-        detalle.setPedido(this);  // 👈 MUY importante
-    }
-
-
-    public void removeDetalle(Detalle_Pedido detalle) {
-        detalles.remove(detalle);
-        detalle.setPedido(null);
+        detalle.setPedido(this); 
     }
 }

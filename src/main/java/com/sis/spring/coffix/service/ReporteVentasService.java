@@ -1,5 +1,19 @@
-// src/main/java/com/sis/spring/coffix/service/ReporteVentasService.java
 package com.sis.spring.coffix.service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
 
 import com.sis.spring.coffix.DTO.ReporteVentasDTO;
 import com.sis.spring.coffix.DTO.VentaDiaDTO;
@@ -8,16 +22,8 @@ import com.sis.spring.coffix.model.Pedido;
 import com.sis.spring.coffix.model.PedidoPago;
 import com.sis.spring.coffix.repository.PedidoPagoRepository;
 import com.sis.spring.coffix.repository.PedidoRepository;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ReporteVentasService {
@@ -28,8 +34,7 @@ public class ReporteVentasService {
     private static final DateTimeFormatter FORMATO_FECHA =
             DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    public ReporteVentasService(PedidoPagoRepository pedidoPagoRepository,
-                                PedidoRepository pedidoRepository) {
+    public ReporteVentasService(PedidoPagoRepository pedidoPagoRepository, PedidoRepository pedidoRepository) {
         this.pedidoPagoRepository = pedidoPagoRepository;
         this.pedidoRepository = pedidoRepository;
     }
@@ -40,7 +45,6 @@ public class ReporteVentasService {
         LocalDateTime inicio = fechaInicio.atStartOfDay();
         LocalDateTime fin = fechaFin.atTime(LocalTime.MAX);
 
-        // 1) Pagos PAGADOS en el rango
         List<PedidoPago> pagos = pedidoPagoRepository.findPagosBetweenFechasAndEstado(
                 inicio, fin, "PAGADO"
         );
@@ -49,25 +53,20 @@ public class ReporteVentasService {
             return new ReporteVentasDTO(BigDecimal.ZERO, Collections.emptyList());
         }
 
-        // 2) IDs de pedidos involucrados
         List<Integer> idsPedidos = pagos.stream()
                 .map(PedidoPago::getId_pedido)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // 3) Pedidos con detalles + producto
         List<Pedido> pedidos = pedidoRepository.findByIdInWithDetalles(idsPedidos);
         Map<Integer, Pedido> pedidoPorId = pedidos.stream()
                 .collect(Collectors.toMap(Pedido::getId_pedido, p -> p));
 
-        // 4) Total de ingresos (todos los pagos)
         BigDecimal totalIngresos = BigDecimal.ZERO;
 
-        // clave = fechaISO + "|" + nombreProducto
         Map<String, AcumuladorProducto> mapa = new HashMap<>();
 
         for (PedidoPago pago : pagos) {
-            // sumar al total general
             BigDecimal monto = pago.getMonto_pagado() != null
                     ? pago.getMonto_pagado()
                     : BigDecimal.ZERO;
@@ -86,13 +85,11 @@ public class ReporteVentasService {
                 String nombreProd = det.getProducto().getNombre();
                 int cant = det.getCantidad() != null ? det.getCantidad() : 0;
 
-                // 🔽🔽🔽 CAMBIO IMPORTANTE: ahora precio_u_p es BigDecimal
                 BigDecimal precioUnit = det.getPrecio_u_p() != null
                         ? det.getPrecio_u_p()
                         : BigDecimal.ZERO;
 
                 BigDecimal subtotal = precioUnit.multiply(BigDecimal.valueOf(cant));
-                // 🔼🔼🔼 FIN DEL CAMBIO
 
                 String clave = fechaDia.toString() + "|" + nombreProd;
 
@@ -106,7 +103,6 @@ public class ReporteVentasService {
             }
         }
 
-        // 5) Ordenar por fecha y luego por nombre de producto
         List<AcumuladorProducto> acumuladores = new ArrayList<>(mapa.values());
         acumuladores.sort(Comparator
                 .comparing(AcumuladorProducto::getFecha)
@@ -127,7 +123,6 @@ public class ReporteVentasService {
         return new ReporteVentasDTO(totalIngresos, ventasPorDia);
     }
 
-    // Acumulador interno por (día, producto)
     private static class AcumuladorProducto {
         private final LocalDate fecha;
         private final String producto;

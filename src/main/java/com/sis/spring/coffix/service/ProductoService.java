@@ -98,7 +98,6 @@ public class ProductoService {
                 throw new ProductNotFound(idProducto);
             }
 
-            // Inserta en RESTOCK_PRODUCTOS
             prod_repo.registrarRestock(idProducto, cantidad, idUsuario);
 
         } catch (ProductNotFound | InvalidEntryInt e) {

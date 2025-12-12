@@ -1,14 +1,13 @@
-// src/main/java/com/sis/spring/coffix/DTO/VentaDiaDTO.java
 package com.sis.spring.coffix.DTO;
 
 import java.math.BigDecimal;
 
 public class VentaDiaDTO {
 
-    private String fecha;           // dd/MM/yyyy
-    private String producto;        // nombre del producto
-    private int cantidadVendida;    // unidades vendidas de ese producto en ese día
-    private BigDecimal totalProducto; // total dinero de ese producto ese día
+    private String fecha;          
+    private String producto;        
+    private int cantidadVendida;    
+    private BigDecimal totalProducto; 
 
     public VentaDiaDTO() {
     }
