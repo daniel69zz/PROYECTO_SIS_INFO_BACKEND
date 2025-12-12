@@ -23,6 +23,9 @@ public class Usuario {
     @Column(name = "password", length = 200)
     private String password;
 
+    @Column(name = "correo", length = 100)
+    private String correo;
+
     @Formula("(SELECT t_rol.nombre FROM tipo_rol t_rol WHERE t_rol.id_tipo_rol = id_tipo_rol)")
     private String rol;
 
@@ -58,6 +61,14 @@ public class Usuario {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
     }
 
     public String getRol() {

@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "pedidos")
@@ -38,6 +39,19 @@ public class Pedido {
         orphanRemoval = true
     )
     private List<Detalle_Pedido> detalles = new ArrayList<>();
+
+
+    @Transient
+    private Integer prioridad; // 1 alta, 2 media, 3 baja
+
+    @Transient
+    private String prioridadLabel;
+
+    public Integer getPrioridad() { return prioridad; }
+    public void setPrioridad(Integer prioridad) { this.prioridad = prioridad; }
+
+    public String getPrioridadLabel() { return prioridadLabel; }
+    public void setPrioridadLabel(String prioridadLabel) { this.prioridadLabel = prioridadLabel; }
 
     public Pedido(){
 

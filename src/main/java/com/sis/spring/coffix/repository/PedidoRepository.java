@@ -13,19 +13,19 @@ import com.sis.spring.coffix.model.Pedido;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
     @Query("""
-        SELECT DISTINCT p
-        FROM Pedido p
-        LEFT JOIN FETCH p.detalles d
-        ORDER BY
-          CASE p.estado
-            WHEN 'Listo' THEN 1
-            WHEN 'En preparacion' THEN 2
-            WHEN 'Pendiente' THEN 3
-            ELSE 4
-          END,
-          p.fc_hora ASC
+       SELECT p.id_pedido
+       FROM Pedido p
+       ORDER BY
+       CASE p.estado
+              WHEN 'Listo' THEN 1
+              WHEN 'En preparacion' THEN 2
+              WHEN 'Pendiente' THEN 3
+              ELSE 4
+       END,
+       p.fc_hora ASC
     """)
-    List<Pedido> findAllWithDetallesOrdenHoraPico();
+    List<Integer> findIdsOrdenHoraPico();
+
 
     @Query("""
            SELECT DISTINCT p
@@ -63,4 +63,13 @@ public interface PedidoRepository extends JpaRepository<Pedido, Integer> {
            WHERE p.id_pedido IN :ids
            """)
     List<Pedido> findByIdInWithDetalles(@Param("ids") List<Integer> ids);
+
+    @Query("""
+           SELECT DISTINCT p
+           FROM Pedido p
+           LEFT JOIN FETCH p.detalles d
+           LEFT JOIN FETCH d.producto prod
+           WHERE LOWER(p.cod_pedido) LIKE LOWER(CONCAT('%', :codigo, '%'))
+           """)
+    List<Pedido> findByCodigoPedidoContainingIgnoreCase(@Param("codigo") String codigo);
 }

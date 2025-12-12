@@ -35,5 +35,13 @@ public class UsuarioService {
             throw new RuntimeException("Error del servidor", e);
         }
     }
+
+    public boolean usuarioExiste(String user) {
+        try {
+            return us_rep.findByUsuario(user).isPresent();
+        } catch (Exception e) {
+            throw new RuntimeException("Error del servidor", e);
+        }
+    }
     
 }

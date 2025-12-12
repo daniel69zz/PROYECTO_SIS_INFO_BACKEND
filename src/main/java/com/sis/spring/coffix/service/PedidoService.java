@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -38,10 +41,46 @@ public class PedidoService {
     }
 
     public List<Pedido> obtenerTodos() {
-        if (esHoraPico()) {
-            return pedidoRepository.findAllWithDetallesOrdenHoraPico();
+        if (!esHoraPico()) {
+            List<Pedido> pedidos = pedidoRepository.findAllWithDetalles();
+            for (Pedido p : pedidos) {
+                p.setPrioridad(null);
+                p.setPrioridadLabel(null);
+            }
+            return pedidos;
         }
-        return pedidoRepository.findAllWithDetalles();
+
+        List<Integer> idsOrdenados = pedidoRepository.findIdsOrdenHoraPico();
+        if (idsOrdenados.isEmpty()) return List.of();
+
+        List<Pedido> pedidos = pedidoRepository.findByIdInWithDetalles(idsOrdenados);
+
+        Map<Integer, Integer> pos = new HashMap<>();
+        for (int i = 0; i < idsOrdenados.size(); i++) {
+            pos.put(idsOrdenados.get(i), i);
+        }
+        pedidos.sort(Comparator.comparingInt(p -> pos.getOrDefault(p.getId_pedido(), Integer.MAX_VALUE)));
+
+        for (Pedido p : pedidos) {
+            int pr = switch (p.getEstado()) {
+                case "Listo" -> 1;
+                case "En preparacion" -> 2; 
+                case "Pendiente" -> 3;
+                default -> 4;
+            };
+
+            p.setPrioridad(pr);
+
+            String label = switch (pr) {
+                case 1 -> "Alta";
+                case 2 -> "Media";
+                case 3 -> "Baja";
+                default -> "Sin definir";
+            };
+            p.setPrioridadLabel(label);
+        }
+
+        return pedidos;
     }
 
     private boolean esHoraPico() {
@@ -54,6 +93,42 @@ public class PedidoService {
 
     public List<Pedido> obtenerPorEstado(String estado) {
         return pedidoRepository.findByEstadoWithDetalles(estado);
+    }
+
+    public List<Pedido> buscarPorCodigo(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new IllegalArgumentException("El código del pedido no puede estar vacío");
+        }
+        List<Pedido> pedidos = pedidoRepository.findByCodigoPedidoContainingIgnoreCase(codigo);
+
+        if (!esHoraPico()) {
+            for (Pedido p : pedidos) {
+                p.setPrioridad(null);
+                p.setPrioridadLabel(null);
+            }
+            return pedidos;
+        }
+
+        for (Pedido p : pedidos) {
+            int pr = switch (p.getEstado()) {
+                case "Listo" -> 1;
+                case "En preparacion" -> 2;
+                case "Pendiente" -> 3;
+                default -> 4;
+            };
+
+            p.setPrioridad(pr);
+
+            String label = switch (pr) {
+                case 1 -> "Alta";
+                case 2 -> "Media";
+                case 3 -> "Baja";
+                default -> "Sin definir";
+            };
+            p.setPrioridadLabel(label);
+        }
+
+        return pedidos;
     }
 
     @Transactional

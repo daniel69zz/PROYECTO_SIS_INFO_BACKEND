@@ -4,19 +4,19 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.sis.spring.coffix.service.UsuarioService;
-
-import jakarta.validation.Valid;
-
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.sis.spring.coffix.DTO.UsuarioDTO;
 import com.sis.spring.coffix.exceptions.UserNotFound;
 import com.sis.spring.coffix.model.Usuario;
+import com.sis.spring.coffix.service.UsuarioService;
+
+import jakarta.validation.Valid;
 
 
 @RestController
@@ -49,6 +49,16 @@ public class UsuarioController {
                     "status", 500
                 )
             );
+        }
+    }
+
+    @GetMapping("/exists")
+    public ResponseEntity<Boolean> exists(@RequestParam("user") String user) {
+        try {
+            boolean exists = us_serv.usuarioExiste(user);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(false);
         }
     }
     

@@ -39,6 +39,31 @@ public class PedidoController {
         return pedidoService.obtenerTodos();
     }
 
+    // GET /api/pedidos/buscar?codigo=PED-123
+    @GetMapping("/buscar")
+    public ResponseEntity<?> buscarPorCodigo(@RequestParam("codigo") String codigo) {
+        try {
+            List<Pedido> pedidos = pedidoService.buscarPorCodigo(codigo);
+            return ResponseEntity.ok(pedidos);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(
+                Map.of(
+                    "error", e.getMessage(),
+                    "timestamp", LocalDateTime.now(),
+                    "status", 400
+                )
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(
+                Map.of(
+                    "error", "Error interno del servidor",
+                    "timestamp", LocalDateTime.now(),
+                    "status", 500
+                )
+            );
+        }
+    }
+
     // PATCH /api/pedidos/5/estado/LISTO
     @PatchMapping("/{id}/estado/{nuevoEstado}")
     public ResponseEntity<?> act_estado(@PathVariable Integer id, @PathVariable String nuevoEstado) {
